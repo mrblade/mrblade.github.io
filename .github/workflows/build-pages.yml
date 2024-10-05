@@ -1,0 +1,44 @@
+name: Build Website - FigHost Action
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - fighost.json
+      
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository != 'mrblade/fighost-automation' && github.run_number > 1 }}
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Install JSON processor
+        run: sudo apt-get install jq
+
+      - name: Set executable permissions for the build script
+        run: chmod +x script/generate.sh
+
+      - name: Generate HTML files
+        run: script/generate.sh
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'pages'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
